@@ -15,4 +15,5 @@ jobs:
              echo "-----------"
              cat /etc/issue 
              echo "-----------"
-             ls /workspace
+             ls /workspace/web
+             cat /workspace/web/a
