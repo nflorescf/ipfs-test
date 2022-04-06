@@ -10,4 +10,5 @@ jobs:
          - name: Log the node version
            run: |
              node -v
-             cat /etc/os-release  
+             echo "-----------"
+             cat /etc/issue 
