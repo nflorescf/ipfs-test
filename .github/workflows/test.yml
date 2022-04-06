@@ -7,7 +7,7 @@ jobs:
     container:
       image: node:14.15.0-alpine3.12
       volumes:
-        - $GITHUB_WORKSPACE:/web:/web
+        - ${{ github.workspace }}/web:/web
     steps:
          - name: Log the node version
            run: |
