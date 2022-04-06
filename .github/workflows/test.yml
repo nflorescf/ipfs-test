@@ -6,8 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:14.15.0-alpine3.12
-      volumes:
-        - ${{ github.workspace }}/web:/web
+      options: -v /web/:/web/
     steps:
          - name: Log the node version
            run: |
