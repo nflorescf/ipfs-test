@@ -5,7 +5,7 @@ jobs:
   node-docker:
     runs-on: ubuntu-latest
     container:
-      image: node:14.15.0-alpine3.12
+      image: node:16
       volumes: 
        - ${{ github.workspace }}:/workspace
     steps:
