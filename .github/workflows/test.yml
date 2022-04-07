@@ -15,5 +15,5 @@ jobs:
              echo "-----------"
              cat /etc/issue 
              echo "-----------"
-             ls /workspace/web
-             cat /workspace/web/a
+         - name: Checkout repository
+           uses: actions/checkout@v2
