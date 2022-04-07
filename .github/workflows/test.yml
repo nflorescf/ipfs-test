@@ -17,3 +17,7 @@ jobs:
              echo "-----------"
          - name: Checkout repository
            uses: actions/checkout@v2
+         - name: show dir
+           run: |
+             cd ipfs-test
+             ls -ltr *
