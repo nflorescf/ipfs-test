@@ -10,7 +10,7 @@ jobs:
        - ${{ github.workspace }}:/workspace
     steps:
            env:
-              NODE_OPTIONS: "--max-old-space-size=4096"
+             NODE_OPTIONS: "--max-old-space-size=4096"
          - name: Log the node version
            run: |
              node -v
