@@ -4,14 +4,10 @@ on: push
 jobs:
   node-docker:
     runs-on: ubuntu-latest
-    container:
-      image: node:16
-      volumes: 
-       - ${{ github.workspace }}:/workspace
     steps:
          - name: Log the node version
            run: |
-             node -v
+            
              echo "-----------"
          - name: Update GitHub Profile README
            uses: theboi/github-update-readme@v1.0
