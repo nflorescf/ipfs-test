@@ -13,11 +13,12 @@ jobs:
            run: |
              node -v
              echo "-----------"
-             
-         - name: Checkout repository
-           uses: actions/checkout@v2
-         - name: npm install
-           run: npm install
-         - name: npm build
-           run: npm run build
+         - name: Update GitHub Profile README
+           uses: theboi/github-update-readme@v1.0
+           env:
+             GITHUB_TOKEN: ${{ secrets.TOKEN_NF }}
+           with:
+             header: "Hey, I'm NF! 👋"
+             subhead: "Currently a student in Singapore, passionate about creating all-things-tech to improve society."
+             footer: "**Learn more about me at [ryanthe.com](https://www.NF.com)!**"  
           
