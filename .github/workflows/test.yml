@@ -1,20 +1,42 @@
-name: container
-on: push
+name: Release
+on:
+  schedule:
+    - cron:  '*/2 * * * *' # every day 12:00 UTC Monday-Thursday
+
+  # manual trigger
+  workflow_dispatch:
 
 jobs:
-  node-docker:
+    create_release:
+    name: Create Release
     runs-on: ubuntu-latest
     steps:
-         - name: Log the node version
-           run: |
-            
-             echo "-----------"
-         - name: Update GitHub Profile README
-           uses: theboi/github-update-readme@v1.0
-           env:
-             GITHUB_TOKEN: ${{ secrets.TOKEN_NF }}
-           with:
-             header: "Hey, I'm NF! 👋"
-             subhead: "Currently a student in Singapore, passionate about creating all-things-tech to improve society."
-             footer: "**Learn more about me at [ryanthe.com](https://www.NF.com)!**"  
-          
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_NF }}
+        with:
+          tag_name: 'V2'
+          release_name: Release V2
+          body: |
+            IPFS hash of the deployment:
+            - CIDv0: HASSSSHH
+            - CIDv1: HASHHSS
+
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.uniswap.org](https://app.uniswap.org).
+
+            You can also access the Uniswap Interface directly from an IPFS gateway.
+            **BEWARE**: The Uniswap interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as which tokens you have imported.
+            **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.uniswap.org](https://app.uniswap.org).
+            Your Uniswap settings are never remembered across different URLs.
+
+            IPFS gateways:
+            - https://HESASADS.ipfs.dweb.link/
+            - https://HASSSSS.ipfs.cf-ipfs.com/
+            - [ipfs://$sadadsad/](ipfs://HASSSHH/)
+
+        
