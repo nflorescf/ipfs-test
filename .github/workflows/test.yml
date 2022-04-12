@@ -4,9 +4,6 @@ on: push
 jobs:
   node-docker:
     runs-on: ubuntu-latest
-    create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
