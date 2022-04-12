@@ -1,12 +1,9 @@
-name: Release
-on:
-  schedule:
-    - cron:  '*/2 * * * *' # every day 12:00 UTC Monday-Thursday
-
-  # manual trigger
-  workflow_dispatch:
+name: container
+on: push
 
 jobs:
+  node-docker:
+    runs-on: ubuntu-latest
     create_release:
     name: Create Release
     runs-on: ubuntu-latest
