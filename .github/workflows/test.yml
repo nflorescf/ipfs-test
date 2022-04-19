@@ -1,8 +1,5 @@
 name: Release
-on:
-  schedule:
-    - cron:  '*/5 * * * *' # every day 12:00 UTC Monday-Thursday
-
+on: push
   # manual trigger
   workflow_dispatch:
 
