@@ -30,7 +30,7 @@ jobs:
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@39bbda1ce1fe24c69c6f57861b8038278d53688d
         with:
-          pin-name: Uniswap ${{ needs.bump_version.outputs.new_tag }}
+          pin-name: MoC ${{ needs.bump_version.outputs.new_tag }}
           path: './build'
           pinata-api-key: ${{ secrets.PINATA_API_KEY }}
           pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
@@ -56,11 +56,12 @@ jobs:
             - CIDv0: `${{ steps.upload.outputs.hash }}`
             - CIDv1: `${{ steps.convert_cidv0.outputs.cidv1 }}`
             The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [ipfs.moneyonchain.com](https://ipfs.moneyonchain.com).
-            You can also access the Uniswap Interface directly from an IPFS gateway.
-            **BEWARE**: The Uniswap interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as which tokens you have imported.
+            You can also access the Moc Interface directly from an IPFS gateway.
+            **BEWARE**: The MoC interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as which tokens you have imported.
             **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.uniswap.org](https://ipfs.moneyonchain.com.
             Your Uniswap settings are never remembered across different URLs.
             IPFS gateways:
+            - https://gateway.pinata.cloud/ipfs/${{ steps.convert_cidv0.outputs.cidv1 }}
             - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.dweb.link/
             - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
             - [ipfs://${{ steps.upload.outputs.hash }}/](ipfs://${{ steps.upload.outputs.hash }}/)
