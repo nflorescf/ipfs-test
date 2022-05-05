@@ -2,7 +2,7 @@
 
 <HEAD>
 
-<TITLE>Su título va aquí</TITLE>
+<TITLE>Su tÃ­tulo va aquÃ­</TITLE>
 
 </HEAD>
 
@@ -12,38 +12,26 @@
 
 <HR>
 
-<a href="http://algunsitiowebestupendo.com">Nombre del vínculo </a>
+<a href="http://algunsitiowebestupendo.com">Nombre del vÃ­nculo </a>
 
-es un vínculo a otro buen sitio web
+es un vÃ­nculo a otro buen sitio web
 
 <H1>Esto es un encabezado V3...........</H1>
 
 <H2>Este es un encabezado mediano V3------------</H2>
 
-Envíen el correo a <a href="mailto:soporte@suempresa.com">
+EnvÃ­en el correo a <a href="mailto:soporte@suempresa.com">
 
 soporte@suempresa.com</a>.
 
 <P> reemplazamos HTML....
 
-<P> <B>¡Este es un nuevoCF </B>
+<P> <B>Â¡Este es un nuevoCF </B>
 
-<BR> <B><I>Esta es una nueva oración sin salto de párrafo CF, en cursiva negrita.</I></B>
+<BR> <B><I>Esta es una nueva oraciÃ³n sin salto de pÃ¡rrafo CF, en cursiva negrita.</I></B>
 
 <HR>
 
 </BODY>
 
 </HTML>
-
-
-----------------------------------------
-Folder
-https://ipfs.io/ipfs/QmVWZuDDU3eYKSPaVvgUqdFG4jBLYevfkwY86kgCj3MTdu
-File
-https://ipfs.io/ipfs/QmVWZuDDU3eYKSPaVvgUqdFG4jBLYevfkwY86kgCj3MTdu/index.hml
-
-
-service mongod status
-
--u=MongoRewardsMainnetAdmin -p=abroadDevaluUResidentAffront --authenticationDatabase admin -d doc_mainnet_rewards ./doc_mainnet_dump/doc_mainnet
