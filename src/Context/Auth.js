@@ -12,11 +12,14 @@ import DocToken from '../Contracts/MoC/abi/DocToken.json';
 import BProToken from '../Contracts/MoC/abi/BProToken.json';
 import MoCToken from '../Contracts/MoC/abi/MoCToken.json';
 import ERC20 from '../Contracts/MoC/abi/RC20Contract';
+import IStakingMachine from '../Contracts/MoC/abi/IStakingMachine.json';
+import IDelayingMachine from '../Contracts/MoC/abi/IDelayingMachine.json';
 import {
     connectorAddresses,
     contractStatus,
     userBalance
 } from './MultiCallFunctions.js';
+import { enable } from 'workbox-navigation-preload';
 const BigNumber = require('bignumber.js');
 
 const AuthenticateContext = createContext({
@@ -31,7 +34,13 @@ const AuthenticateContext = createContext({
     BPROReedem: async (amount) => {},
     Bprox2Mint: async (amount) => {},
     Bprox2Redeem: async (amount) => {},
-    disconnect: () => {}
+    disconnect: () => {},
+    getTransactionReceipt: (hash) => {},
+    getStackedBalance:  async (address) => {},
+    getLockedBalance:  async (address) => {},
+    stakingDeposit: async (mocs, address) => {},
+    approveMoCToken: async (address) => {},
+    getPendingWithdrawals: async (address) => {},
 });
 
 let checkLoginFirstTime = true;
@@ -76,6 +85,7 @@ const AuthenticateProvider = ({ children }) => {
         GasPrice: 0,
         truncatedAddress: ''
     });
+    // const [transactionReceipt, setTransactionReceipt] = useState(null);
 
     useEffect(() => {
         if (checkLoginFirstTime) {
@@ -137,7 +147,7 @@ const AuthenticateProvider = ({ children }) => {
             GasPrice: await getGasPrice(),
             truncatedAddress: truncate_address
         };
-
+        console.log('accountData', accountData);
         setAccountData(accountData);
     };
     const loadBalanceData = async () => {
@@ -318,6 +328,7 @@ const AuthenticateProvider = ({ children }) => {
     const DoCMint = async (amount, callback) => {
         const web3 = new Web3(provider);
         const moc = getContract(MocAbi.abi, mocAddress);
+        
         const amountWei = web3.utils.toWei(amount);
         const totalAmount = await getTotalAmount(
             amountWei,
@@ -476,6 +487,77 @@ const AuthenticateProvider = ({ children }) => {
                 callback
             );
     };
+
+    const getTransactionReceipt = async (hash, callback) => {
+        const web3 = new Web3(provider);
+        let transactionReceipt = false;
+        let transaction = await web3.eth.getTransactionReceipt(hash);
+        if (transaction) {
+            transactionReceipt = true;
+        }
+        return transactionReceipt;
+    };
+
+    const getStackedBalance = async address => {
+        const anAddress = '0x051F724b67bdB72fd059fBb9c62ca56a92500FF9';
+        const moc = getContract(IStakingMachine.abi, anAddress);
+        let balance = await moc.methods.getBalance(anAddress).call();
+        return balance;
+    };
+
+    const getLockedBalance = async address => {
+        const anAddress = '0x051F724b67bdB72fd059fBb9c62ca56a92500FF9';
+        const moc = getContract(IStakingMachine.abi, anAddress);
+        return moc.methods.getLockedBalance(anAddress).call();
+    };
+
+    const stakingDeposit = async (mocs, address, callback) => {
+        const anAddress = '0x051F724b67bdB72fd059fBb9c62ca56a92500FF9';
+        const weiAmount = web3.utils.toWei(mocs, 'ether');
+        const moc = getContract(IStakingMachine.abi, anAddress);
+        const estimateGas = (
+            await moc.methods
+            .deposit(weiAmount, address)
+            .estimateGas({ anAddress })) * 2;
+        return moc.methods
+            .deposit(weiAmount, address)
+            .send({ anAddress, gas: estimateGas, gasLimit: estimateGas, gasPrice: await getGasPrice()},
+                callback
+            );
+    };
+
+    const approveMoCToken = async (enabled, callback = () => { }) => {
+        console.log('.........');
+        const mocTokenAddress = '0x0399c7F7B37E21cB9dAE04Fb57E24c68ed0B4635';
+        const anAddress = '0x051F724b67bdB72fd059fBb9c62ca56a92500FF9';
+        const newAllowance = enabled ? web3.utils.toWei(Number.MAX_SAFE_INTEGER.toString()) : 0;
+        const moc = getContract(ERC20.abi, mocTokenAddress);
+        console.log('newAllowance', newAllowance);
+        return moc.methods.approve(anAddress, newAllowance)
+            .send({ mocTokenAddress, gasPrice: await getGasPrice()}, callback);
+    };
+
+    const stakingCancelWithdraw = async (id, callback) => {
+        const from = account;
+        const moc = getContract(IDelayingMachine.abi, mocAddress);
+    };
+
+    const getPendingWithdrawals = async address => {
+        const from = address || account;
+        const anAddress = '0xa5D66d8dE70e0A8Be6398BC487a9b346177004B0';
+        const moc = getContract(IDelayingMachine.abi, anAddress);
+        const { ids, amounts, expirations } = await moc.methods.getTransactions(from).call();
+        const withdraws = [];
+        for (let i = 0; i < ids.length; i++) {
+            withdraws.push({
+                id: ids[i],
+                amount: amounts[i],
+                expiration: expirations[i]
+            });
+        }
+        return withdraws;
+    };
+
     return (
         <AuthenticateContext.Provider
             value={{
@@ -491,7 +573,13 @@ const AuthenticateProvider = ({ children }) => {
                 BPROMint,
                 BPROReedem,
                 Bprox2Mint,
-                Bprox2Redeem
+                Bprox2Redeem,
+                getTransactionReceipt,
+                getStackedBalance,
+                getLockedBalance,
+                stakingDeposit,
+                approveMoCToken,
+                getPendingWithdrawals
             }}
         >
             {children}

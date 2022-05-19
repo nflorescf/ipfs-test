@@ -1,15 +1,16 @@
 import { Outlet } from 'react-router-dom';
 import { Layout, Menu, Image, Drawer, Button } from 'antd';
-import { HomeFilled, MenuOutlined, CloseOutlined } from '@ant-design/icons';
+import { HomeFilled, MenuOutlined, CloseOutlined, PieChartFilled,InfoCircleFilled } from '@ant-design/icons';
 import logoImage from '../assets/icons/logo.svg';
 import LoginButton from '../Components/Auth/LoginButton/index';
-import { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthenticateContext } from '../Context/Auth';
 import { formatVisibleValue } from '../Lib/Formats';
 import HeaderCoins from "../Components/Page/HeaderCoins";
 const BigNumber = require('bignumber.js');
 const { Header, Content, Sider } = Layout;
+const { SubMenu } = Menu;
 
 export default function Admin() {
     const navigate = useNavigate();
@@ -35,6 +36,10 @@ export default function Admin() {
             selectedMenuKey = 'mint-pro';
         } else if (location.pathname === '/wallet/leveraged') {
             selectedMenuKey = 'mint-leveraged';
+        } else if (location.pathname === '/rewards') {
+            selectedMenuKey = 'rewards';
+        } else if (location.pathname === '/metrics') {
+            selectedMenuKey = 'metrics';
         }
         setSelectedMenu(selectedMenuKey);
     };
@@ -86,13 +91,36 @@ export default function Admin() {
                         onClick={() => navigate('/wallet/leveraged')}
                         icon={<span className="icon-icon-riskprox"></span>}
                     />
+                    <Menu.Item
+                        key="rewards"
+                        onClick={() => navigate('/rewards')}
+                        icon={<span className="icon-icon-moc"></span>}
+                    />
+                    {/*<Menu.Item*/}
+                    {/*    key="getRBTC"*/}
+                    {/*    onClick={() => navigate('/getRBTC')}*/}
+                    {/*    icon={<span className="icon-icon-moc"></span>}*/}
+                    {/*/>*/}
+                    <Menu.Item
+                        key="metrics"
+                        onClick={() => navigate('/metrics')}
+                        icon={<PieChartFilled />}
+                    />
+                    <SubMenu key="information" title="Profile" icon={<InfoCircleFilled />} theme={'light'}>
+                        <Menu.Item key="contract_repository" onClick={() => window.open('https://github.com/money-on-chain/main-RBTC-contract', '_self')}>Contract Repository</Menu.Item>
+                        <Menu.Item key="webapp_repository" onClick={() => window.open('https://github.com/money-on-chain/webapp-stable-ipfs', '_self')}>Webapp Repository</Menu.Item>
+                        <Menu.Item key="help_center" onClick={() => window.open('https://wiki.moneyonchain.com/', '_self')}>Help Center</Menu.Item>
+                    </SubMenu>
                 </Menu>
             </Sider>
             <Layout>
                 <Header className="Header" style={{ paddingLeft: 18 }}>
                     <Image height={40} src={logoImage} />
-                    <div className="Spacer"></div>
-                    {/*<HeaderCoins/>*/}
+                    <div className="MiddleSide">
+                        <HeaderCoins tokenName="stable" image={'icon-rbtclogo.svg'} />
+                        <HeaderCoins tokenName="riskpro" image={'BPROIcon.svg'} />
+                        <HeaderCoins tokenName="riskprox" image={'BTXIcon.svg'} />
+                    </div>
                     <LoginButton {...loginButtonSettings} />
 
                     <Button
@@ -144,6 +172,21 @@ export default function Admin() {
                         icon={<span className="icon-icon-riskprox"></span>}
                     >
                         BTCx
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="mint-leveraged"
+                        onClick={() => navigate('/metrics')}
+                        icon={PieChartFilled}
+                    >
+                        BTCx
+                    </Menu.Item>
+                    <Menu.Item
+                        key="rewards"
+                        onClick={() => navigate('/rewards')}
+                        icon={<span className="icon-icon-moc"></span>}
+                    >
+                        MoC
                     </Menu.Item>
                 </Menu>
             </Drawer>

@@ -1,7 +1,9 @@
-import { Row, Col, Input, Select } from 'antd';
+import { Button } from 'antd';
 import { AuthenticateContext } from '../../../Context/Auth';
-import { useState, useContext } from 'react';
+import Web3 from 'web3';
+import { useState, useContext, useEffect } from 'react';
 import { Modal } from 'antd';
+import Copy from "../../Page/Copy";
 import { currencies as currenciesDetail } from '../../../Config/currentcy';
 const BigNumber = require('bignumber.js');
 export default function MintModal(props) {
@@ -16,6 +18,8 @@ export default function MintModal(props) {
         token = ''
     } = props;
     const [loading, setLoading] = useState(false);
+    const [showTransaction, setShowTransaction] = useState(false);
+    const [transaction, setTransaction] = useState(null);
     const auth = useContext(AuthenticateContext);
     const tokenNameExchange = currencyYouExchange
         ? currenciesDetail.find((x) => x.value === currencyYouExchange).label
@@ -27,6 +31,16 @@ export default function MintModal(props) {
         ? currenciesDetail.find((x) => x.value === token).label
         : '';
 
+    const [currentHash, setCurrentHash] = useState(null);
+
+    useEffect(() => {
+        if (currentHash) {
+            const interval = setInterval(() => {
+                getTransaction(currentHash)
+            }, 15000);
+            return () => clearInterval(interval);
+        }
+    });
     const handleOk = async () => {
         setLoading(true);
         switch (currencyYouReceive) {
@@ -58,10 +72,21 @@ export default function MintModal(props) {
         }
     };
 
+    const getTransaction = async (hash) => {
+        let status = auth.getTransactionReceipt(hash);
+        if (status) {
+            setTransaction(true);
+        }
+    } ;
+
     const callback = (error, transactionHash) => {
         setLoading(false);
-        handleComplete();
-        console.log(transactionHash);
+        setCurrentHash(transactionHash);
+        const transaction = auth.getTransactionReceipt(transactionHash);
+        if (transaction) {
+            setTransaction(transaction);
+        }
+        setShowTransaction(true);
     };
     const styleExchange = tokenNameExchange === tokenName ? { color } : {};
     const styleReceive = tokenNameReceive === tokenName ? { color } : {};
@@ -70,11 +95,8 @@ export default function MintModal(props) {
         <Modal
             title={title}
             visible={visible}
-            onOk={handleOk}
             confirmLoading={loading}
-            onCancel={handleClose}
-            cancelText="Cancel"
-            okText="Confirm"
+            footer={null}
         >
             <div className="TabularContent">
                 <div className="AlignedAndCentered">
@@ -128,6 +150,44 @@ export default function MintModal(props) {
                 <i className="Gray">
                     Amounts may be different at transaction confirmation
                 </i>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '1em'}}>
+                {showTransaction
+                    ? <div style={{ width: '100%' }}>
+                        <div>
+                            <p style={{ width: '50%', float: 'left' }}>Transaction status</p>
+                            <p
+                                style={{ textAlign: 'right', color: transaction ? '#09c199' : '#f1a954' }}
+                            >{transaction ? 'SUCCESSFUL' : 'PENDING'}</p>
+                        </div>
+                        <div>
+                            <p style={{ width: '50%', float: 'left' }}>Hash</p>
+                            <div style={{ textAlign: 'right' }}>
+                                <Copy textToShow={currentHash?.slice(0, 5)+'...'+ currentHash?.slice(-4)} textToCopy={currentHash}/>
+                            </div>
+                        </div>
+                        <div style={{ clear: 'both' }}>
+                            <a
+                                style={{ color: '#09c199' }}
+                                href={`https://explorer.testnet.rsk.co/tx/${currentHash}`}
+                                target="_blank"
+                            >View on the explorer</a>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center'}}>
+                            <Button type="primary" onClick={() => {handleComplete(); setCurrentHash(null); setShowTransaction(false)}}>Close</Button>
+                        </div>
+                    </div>
+                    : <>
+                    <Button
+                        onClick={() => handleClose()}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={() => handleOk()}
+                    >Confirm</Button>
+                </>}  
             </div>
         </Modal>
     );
