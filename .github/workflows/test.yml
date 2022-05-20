@@ -16,7 +16,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.0
         with:
           github_token: ${{ secrets.TOKEN_NF }}
-          release_branches: master.*
+          release_branches: .*
           default_bump: false
           
           
@@ -38,6 +38,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install dependencies
+        run: npm install webpack@4.44.2
       - name: Build the IPFS bundle
         run: npm run build
 
