@@ -7,7 +7,7 @@ aaa
 
 **Github**
 
-1- Create repo
+1- Create repofff
 2 - Create TOKEN
 
 **CloudFlare**
