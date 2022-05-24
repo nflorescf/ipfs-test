@@ -42,7 +42,7 @@ jobs:
         run: npm install webpack@4.44.2 babel-jest@26.6.0 babel-loader@8.1.0 jest@26.6.0
       - name: Build the IPFS bundle
         env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: npm run build
 
       - name: Pin to IPFS
