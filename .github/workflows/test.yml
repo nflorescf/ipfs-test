@@ -32,14 +32,14 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm install
 
       - name: Install dependencies
-        run: npm install webpack@4.44.2
+        run: npm install webpack@4.44.2 babel-jest@26.6.0 babel-loader@8.1.0 jest@26.6.0
       - name: Build the IPFS bundle
         run: npm run build
 
