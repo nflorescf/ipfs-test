@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 16.4.2
           registry-url: https://registry.npmjs.org
-          cache: 'npm'
+          
       - name: Install set-unsa
         run: npm config set unsafe-perm-true
         
