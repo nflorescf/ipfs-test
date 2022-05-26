@@ -26,6 +26,12 @@ jobs:
     needs: bump_version
     if: ${{ needs.bump_version.outputs.new_tag != null }}
     steps:
+      - name: HW Rev
+        run: |
+           free -h
+           lscpu
+        shell: bash
+        
       - name: Checkout
         uses: actions/checkout@v2
         
