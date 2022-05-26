@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-       - name: Build the IPFS bundle
+      - name: Build the IPFS bundle
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         run: npm run build
