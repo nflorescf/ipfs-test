@@ -22,7 +22,7 @@ jobs:
           
   create_release:
     name: Create Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: bump_version
     if: ${{ needs.bump_version.outputs.new_tag != null }}
     steps:
@@ -30,17 +30,14 @@ jobs:
         run: |
            free -h
            lscpu
+           curl -sL https://deb.nodesource.com/setup_16.x | bash -
+           apt-get install -y nodejs
         shell: bash
         
       - name: Checkout
         uses: actions/checkout@v2
         
-      - name: Set up node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14
-          registry-url: https://registry.npmjs.org
-          
+               
       - name: Install set-unsa
         run: npm config set unsafe-perm-true
         
