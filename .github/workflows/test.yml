@@ -30,8 +30,8 @@ jobs:
         run: |
            free -h
            lscpu
-           curl -sL https://deb.nodesource.com/setup_16.x | bash -
-           apt-get install -y nodejs
+           sudo curl -sL https://deb.nodesource.com/setup_16.x | bash -
+           sudo apt-get install -y nodejs
         shell: bash
         
       - name: Checkout
