@@ -2,6 +2,7 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "@portis/web3": "^4.0.7",
@@ -48,15 +49,11 @@
     "workbox-range-requests": "^5.1.4",
     "workbox-routing": "^5.1.4",
     "workbox-strategies": "^5.1.4",
-    "workbox-streams": "^5.1.4",
-    "babel-jest": "^26.6.0",
-    "babel-loader": "^8.1.0",
-    "jest": "^26.6.0",
-    "webpack": "^4.44.2"
+    "workbox-streams": "^5.1.4"
   },
   "scripts": {
     "start": "set PORT=8080 && react-scripts start",
-    "build": "export NODE_OPTIONS=--max_old_space_size=8192 && react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
