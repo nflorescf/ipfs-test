@@ -30,5 +30,5 @@ RUN npm install babel-jest@26.6.0 -g
 RUN npm install babel-loader@8.1.0 jest@26.6.0 webpack@4.44.2 -g
 RUN npm install webpack@4.44.2 -g
 
-CMD ["npm","run","build"]
+CMD ["ls","-ltr;","npm","run","build"]
 ##CMD ["node", "--max-old-space-size=4096", "node_modules/@angular/cli/bin/ng", "build"]
