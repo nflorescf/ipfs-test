@@ -29,12 +29,6 @@ RUN npm config set unsafe-perm true
 
 WORKDIR /usr/src/app
 
-COPY package.json ./
-COPY webpack.config.js ./
-COPY package-lock.json ./
-COPY webpack.config.js ./
-COPY public ./public
-COPY src ./src
 RUN npm install
 RUN npm install babel-jest@26.6.0
 RUN npm install babel-loader@8.1.0 jest@26.6.0 webpack@4.44.2
