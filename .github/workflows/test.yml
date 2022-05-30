@@ -34,8 +34,6 @@ jobs:
         run: |
            free -h
            lscpu
-           mkdir REPO
-           cd REPO
         shell: bash
       - name: Checkout
         uses: actions/checkout@v2
