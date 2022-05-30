@@ -32,8 +32,7 @@ COPY package.json ./
 COPY webpack.config.js ./
 COPY package-lock.json ./
 COPY webpack.config.js ./
-ADD public/ ./public
-ADD src/ ./src
+COPY . .
 
 RUN npm install
 RUN npm install babel-jest@26.6.0
