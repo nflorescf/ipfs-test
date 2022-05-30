@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Docker Build image
-        run: docker build -t builder_webapp -f Dockerfile .
+        run: docker build -t builder_webapp --no-cache -f Dockerfile .
       
       - name: Build With image
         run: docker run --rm --name webapp-IPFS-compiler --env TOOL_NODE_FLAGS="--max-old-space-size=4096" -v "$(pwd)"/build:/usr/src/app/build builder_webapp
