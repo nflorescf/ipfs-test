@@ -34,6 +34,8 @@ jobs:
         run: |
            free -h
            lscpu
+           mkdir REPO
+           cd REPO
         shell: bash
       - name: Checkout
         uses: actions/checkout@v2
@@ -42,7 +44,7 @@ jobs:
         run: docker build -t builder_webapp -f Dockerfile .
       
       - name: Build With image
-        run: docker run --rm --name webapp-IPFS-compiler --env TOOL_NODE_FLAGS="--max-old-space-size=4096" -v "$(pwd)"/:/usr/src/app/ builder_webapp
+        run: docker run --rm --name webapp-IPFS-compiler --env TOOL_NODE_FLAGS="--max-old-space-size=4096" -v "$(pwd)"/REPO/:/usr/src/app/REPO/ builder_webapp
 
 
       - name: Pin to IPFS
