@@ -35,10 +35,14 @@ jobs:
            free -h
            lscpu
         shell: bash
-      - name: Docker login
-        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build
-        run: docker run --rm --name webapp-IPFS-compiler --env TOOL_NODE_FLAGS="--max-old-space-size=4096" -v "$(pwd)"/build:/usr/src/app/build nflorescf/compiler-ipfs:latest
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Docker Build image
+        run: docker build -t builder_webapp -f Dockerfile .
+      
+      - name: Build With image
+        run: docker run --rm --name webapp-IPFS-compiler --env TOOL_NODE_FLAGS="--max-old-space-size=4096" -v "$(pwd)"/build:/usr/src/app/build builder_webapp
 
 
       - name: Pin to IPFS
