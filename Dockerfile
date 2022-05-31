@@ -24,6 +24,8 @@ COPY package.json ./
 COPY webpack.config.js ./
 COPY package-lock.json ./
 COPY webpack.config.js ./
-
-CMD npm install && npm install babel-loader@8.1.0 jest@26.6.0 webpack@4.44.2 babel-jest@26.6.0 && npm run build
+RUN npm install babel-jest@26.6.0
+RUN npm install babel-loader@8.1.0 jest@26.6.0 webpack@4.44.2
+RUN npm install webpack@4.44.2
+CMD  ["npm", "run", "build"]
 ##CMD ["node", "--max-old-space-size=4096", "node_modules/@angular/cli/bin/ng", "build"]
