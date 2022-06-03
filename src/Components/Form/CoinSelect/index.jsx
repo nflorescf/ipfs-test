@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useContext, useEffect, useState} from 'react';
 import { AuthenticateContext } from '../../../Context/Auth';
 import {
     formatVisibleValue,
@@ -13,6 +13,7 @@ const BigNumber = require('bignumber.js');
 const { Option } = Select;
 
 export default function CoinSelect(props) {
+    const auth = useContext(AuthenticateContext);
     const { docBalance = 0, bproBalance = 0, bprox2Balance = 0, mocBalance = 0 } = props.UserBalanceData ? props.UserBalanceData : {};
     const { inputValueInWei = '0.0001', onInputValueChange = () => { } } = props;
     const {
@@ -47,15 +48,31 @@ export default function CoinSelect(props) {
     const maxAmount = () => {
         switch (tokenName) {
             case 'RBTC':
-                return new BigNumber(props.AccountData.Balance).toFixed(4);
+                return new BigNumber(props.AccountData.Balance).toFixed(6);
             case 'DOC':
-                return docBalance;
+                if(auth.isLoggedIn){
+                    return docBalance;
+                }else{
+                    return (0).toFixed(2)
+                }
             case 'BPRO':
-                return bproBalance;
+                if(auth.isLoggedIn){
+                    return bproBalance;
+                }else{
+                    return (0).toFixed(6)
+                }
             case 'BTCX':
-                return bprox2Balance;
+                if(auth.isLoggedIn){
+                    return bprox2Balance;
+                }else{
+                    return (0).toFixed(6)
+                }
             case 'MOC':
-                return mocBalance;
+                if(auth.isLoggedIn){
+                    return mocBalance;
+                }else{
+                    return (0).toFixed(2)
+                }
             default:
                 return 0.0;
         }
@@ -86,7 +103,7 @@ export default function CoinSelect(props) {
                     xs={{ span: 14 }}
                     sm={{ span: 14 }}
                     md={{ span: 16 }}
-                    lg={{ span: 18 }}
+                    lg={{ span: 16 }}
                 >
                     <Input
                         type="number"
@@ -96,8 +113,10 @@ export default function CoinSelect(props) {
                         step="any"
                         style={{ width: '100%' }}
                         disabled={disabled}
-                        onChange={(event) =>
-                            handleValueChange(event.target.value)
+                        onChange={(event) => {
+                            if(event.target.value > props.AccountData.Balance || event.target.value<0) return false;
+                                handleValueChange(event.target.value);
+                            }
                         }
                     />
                 </Col>
@@ -105,7 +124,7 @@ export default function CoinSelect(props) {
                     xs={{ span: 10 }}
                     sm={{ span: 10 }}
                     md={{ span: 8 }}
-                    lg={{ span: 6 }}
+                    lg={{ span: 8 }}
                 >
                     <div className={`SelectCurrency ${disabledSelect || disabled ? 'disabled' : ''}`}>
                         <Select
