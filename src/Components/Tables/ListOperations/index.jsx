@@ -19,6 +19,8 @@ import { useTranslation } from "react-i18next";
 import date from '../../../Config/date';
 import {AuthenticateContext} from "../../../Context/Auth";
 import {InfoCircleOutlined} from "@ant-design/icons";
+import {DownCircleOutlined, UpCircleOutlined} from "@ant-design/icons";
+import {LargeNumber} from "../../LargeNumber";
 
 export default function ListOperations(props) {
     const { token } = props;
@@ -46,6 +48,7 @@ export default function ListOperations(props) {
 
     const [t, i18n] = useTranslation(["global", 'moc']);
     const auth = useContext(AuthenticateContext);
+    const [currencyCode, setCurrencyCode]=  useState('MOC');
 
 
     /*const handleToggle = prop => enable => {
@@ -188,7 +191,7 @@ export default function ListOperations(props) {
                     , tx_hash_truncate: datas_response['tx_hash_truncate']
                     , tx_hash: datas_response['tx_hash']
                     , leverage: datas_response['leverage']
-                    , gas_fee: datas_response['gas_fee']
+                    , gas_fee: `${datas_response['gas_fee']} ( ${datas_response['gasFeeUSD']})`
                     , price: datas_response['price']
                     , comments: '--'
                 };
@@ -199,6 +202,7 @@ export default function ListOperations(props) {
                     event: datas_response['set_event'],
                     asset: datas_response['set_asset'],
                     platform: `+ ${datas_response['paltform_detail']}`,
+                    // platform: (data_j.amount!==undefined)? <LargeNumber amount={datas_response['paltform_detail']} {...{ currencyCode }} /> : '--',
                     // wallet: (data_j.RBTCAmount!==undefined)? `${wallet_detail} RBTC`:'--',
                     wallet: datas_response['wallet_value_main'],
                     date: datas_response['lastUpdatedAt'],
@@ -293,6 +297,17 @@ export default function ListOperations(props) {
             </div>
             <Table
                 {...state}
+                expandable={{
+                    expandedRowRender: record => (
+                        <p style={{ margin: 0 }}>{record.description}</p>
+                    ),
+                    expandIcon: ({ expanded, onExpand, record }) =>
+                        expanded ? (
+                            <UpCircleOutlined onClick={e => onExpand(record, e)} />
+                        ) : (
+                            <DownCircleOutlined onClick={e => onExpand(record, e)} />
+                        )
+                }}
                 pagination={{ position: [top, bottom], defaultCurrent: 1, onChange: (page) => setPage(page), total: Object.keys(data_json.transactions).length }}
                 columns={tableColumns}
                 dataSource={hasData ? (auth.isLoggedIn == true) ? data : null : null}
