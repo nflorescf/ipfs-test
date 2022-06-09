@@ -2,6 +2,10 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 module.exports = {
   plugins: [
-    new BundleAnalyzerPlugin()
+    new BundleAnalyzerPlugin(),
+    new webpack.optimize.AggressiveSplittingPlugin({
+			minSize: 30000,
+			maxSize: 50000
+		})
   ]
 }
