@@ -3,9 +3,13 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 module.exports = {
   plugins: [
     new BundleAnalyzerPlugin(),
-    new webpack.optimize.AggressiveSplittingPlugin({
-			minSize: 30000,
-			maxSize: 50000
-		})
+    new webpack.DefinePlugin({ // <-- key to reducing React's size
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    }),
+    new webpack.optimize.DedupePlugin(), //dedupe similar code 
+    new webpack.optimize.UglifyJsPlugin(), //minify everything
+    new webpack.optimize.AggressiveMergingPlugin()//Merge chunks 
   ]
 }
