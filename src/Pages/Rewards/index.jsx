@@ -8,6 +8,7 @@ import ListOperations from "../../Components/Tables/ListOperations";
 import { AuthenticateContext } from '../../Context/Auth';
 import { useTranslation } from "react-i18next";
 import './style.scss'
+import '../Home/style.scss'
 
 export default function Rewards(props) {
     const auth = useContext(AuthenticateContext);
@@ -33,9 +34,10 @@ export default function Rewards(props) {
                 </Col>
                 <Col xs={24} md={12} xl={4}>
                     <YourAddressCard
-                        height="32.4em"
+                        height="100%"
                         tokenToSend="MOC"
                         iconWallet={`${window.location.origin}/Moc/icon-moc.svg`}
+                        view={'moc'}
                     // currencyOptions={['RESERVE', 'MOC']}
                     />
                 </Col>

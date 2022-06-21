@@ -7,41 +7,24 @@ import { AuthenticateContext } from '../../../Context/Auth';
 import { LargeNumber } from '../../LargeNumber';
 import { useTranslation } from "react-i18next";
 import { set_doc_usd } from "../../../Helpers/helper";
-import convertHelper from '../../../Lib/convertHelper';
+// import convertHelper from '../../../Lib/convertHelper';
 import { getPriceFields } from '../../../Lib/price';
 import BalanceItem from '../../BalanceItem/BalanceItem';
 import InformationModal from '../../Modals/InformationModal';
+import { formatLocalMap2 } from '../../../Lib/Formats';
 import './style.scss';
 const BigNumber = require('bignumber.js');
 
 export default function AmountCard(props) {
     const [t, i18n] = useTranslation(["global", 'moc']);
     const auth = useContext(AuthenticateContext);
+    const { convertToken } = auth;
     if (!auth) return null;
     const {
         tokenName = '',
         color = '',
         titleName = '' } = props;
-
-    const priceFields = getPriceFields();
-    const mocStates = {
-        fields: {
-            ...priceFields,
-            reservePrecision: 1,
-            priceVariation: 1,
-            commissionRates: 1,
-            lastUpdateHeight: 1,
-            isDailyVariation: 1
-        }
-    }
-    const mocState = props.StatusData;
-    let mocStatePrices;
-    if (mocState?.length) {
-        [mocStatePrices] = mocStates;
-    }
-    const convertToken = convertHelper(
-        _.pick(mocStatePrices, Object.keys(priceFields).concat(['reservePrecision']))
-    );
+    // const convertToken = convertHelper(_.pick(mocStatePrices, Object.keys(priceFields).concat(['reservePrecision'])));
 
     const getBalance = () => {
         if (auth.userBalanceData) {
@@ -80,7 +63,7 @@ export default function AmountCard(props) {
         }
     };
     const convertTo = convertToCurrency => convertToken(tokenName, convertToCurrency, getBalance());
-    // const converToUSD = convertToCurrency => convertToken(tokenName, convertToCurrency, getBalanceUSD());
+    // const converToUSD = convertToCurrency => ConvertToken(tokenName, convertToCurrency, getBalanceUSD());
 
     const pre_label = t(`MoC.Tokens_${tokenName.toUpperCase()}_name`, { ns: 'moc' })
 
@@ -99,14 +82,21 @@ export default function AmountCard(props) {
                     <Col>
                         <img
                             width={56}
-                            src={window.location.origin + `/Moc/icon-${tokenName}.svg`}
+                            src={window.location.origin + `/Moc/icon-${tokenName.toLowerCase()}.svg`}
                             alt="icon-wallet"
                         />
                     </Col>
                 </Row>
                 <Row className="tokenAndBalance">
                     <div className="priceContainer">
-                        <LargeNumber amount={getBalance()} currencyCode={tokenName} />
+                        <Tooltip title={Number(getBalance())?.toLocaleString(formatLocalMap2[i18n.languages[0]])}>
+                            <div>
+                                {Number(getBalance()).toLocaleString(formatLocalMap2[i18n.languages[0]], {
+                                    minimumFractionDigits: tokenName === 'STABLE' ? 2 : 6,
+                                    maximumFractionDigits: tokenName === 'STABLE' ? 2 : 6
+                                })}
+                            </div>
+                        </Tooltip>
                         <div className="WalletCurrencyPrice">
                             <BalanceItem
                                 amount={convertTo('RESERVE')}

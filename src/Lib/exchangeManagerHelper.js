@@ -10,6 +10,7 @@ import { getTransactionType } from './exchangeHelper';
 const BigNumber = require('bignumber.js');
 
 const convertAmount = (source, target, amount, convertToken) => {
+  console.log(source, target, amount);
   if (amount === '') {
     return '';
   }
@@ -20,7 +21,15 @@ const convertAmount = (source, target, amount, convertToken) => {
     convertToken(source, target, formatValueToContract(amount, source)),
     target
   );
-  return isNaN(convertedAmount) ? '' : convertedAmount.toString();
+  console.log('convertedAmount', convertedAmount);
+  const replacedDot = convertedAmount.replace(/\./g, '');
+  console.log('replacedDot', replacedDot.replace(/\./g, ''))
+  const replacedComma = replacedDot.replace(/,/g, '');
+  console.log('replacedComma', replacedComma)
+  console.log(isNaN(replacedComma))
+  return isNaN(replacedComma) ? '' : replacedComma.toString();
+  // console.log(isNaN(convertAmount));
+  // return isNaN(convertedAmount) ? '' : convertedAmount.toString();
 };
 
 const amountIsTooSmall = target => {

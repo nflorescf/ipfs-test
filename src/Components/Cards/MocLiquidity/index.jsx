@@ -1,6 +1,6 @@
 import './style.scss'
-import React, { Fragment } from 'react';
-import { useContext } from 'react'
+import React, {Fragment, useEffect} from 'react';
+import { useContext,useState } from 'react'
 import { AuthenticateContext } from "../../../Context/Auth";
 import CountUp from 'react-countup';
 import {Alert, Button, Tooltip} from 'antd';
@@ -12,12 +12,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {LargeNumber} from "../../LargeNumber";
 import Web3 from "web3";
-import web3 from "web3";
+import api from "../../../services/api";
+import config from "../../../Config/constants";
+import OperationStatusModal from "../../Modals/OperationStatusModal/OperationStatusModal";
 
 const BigNumber = require('bignumber.js');
 
 function MocLiquidity(props) {
     const auth = useContext(AuthenticateContext);
+    const {web3} = auth;
 
     const set_moc_balance_usd = () => {
         if (auth.userBalanceData) {
@@ -35,6 +38,42 @@ function MocLiquidity(props) {
     }
 
     const [t, i18n] = useTranslation(["global", 'moc'])
+
+
+    const [callAgent, setCallAgent] = useState(false);
+    const [incentiveState, setIncentiveState] = useState(null);
+    const [incentiveStateData, setIincentiveStateData] = useState([]);
+
+    const { accountData } = auth;
+
+    const agent= () => {
+        api('get', `${config.api_moneyonchain}`+'agent', {})
+            .then(response => {
+                setIncentiveState(response);
+            })
+            .catch((response) => {
+                console.log(response);
+            });
+    };
+
+    useEffect(() => {
+        setCallAgent(true)
+        agent()
+    },[callAgent]);
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [operationStatus, setOperationStatus] = useState("pending");
+    const [txHash, setTxHash] = useState("0x00000");
+
+    const claimRewards = async (from, incentiveDestination, incentiveValue, callback = () => { }) => {
+        return web3.eth.sendTransaction({ from: from, to: incentiveDestination, value: incentiveValue, gasPrice: await web3.eth.getGasPrice() }, callback);
+    };
+
+    const claim =()=>{
+        claimRewards(accountData.Owner,incentiveState.agent_address,  incentiveState.gas_cost,  (a, _txHash) => {setModalOpen(true);setTxHash(_txHash);})
+            .then( () => setOperationStatus("success"))
+            .catch(() => setOperationStatus("error"))
+    }
 
     return (
         <div className="Card RewardsBalanceLiquidity withPadding hasTitle">
@@ -84,7 +123,15 @@ function MocLiquidity(props) {
                         </button>
                     </Link>
 
-                    : <Button style={{ marginTop: '3.5em' }} type="primary" disabled={!auth.isLoggedIn}>{t('global.RewardsClaimButton_Claim', { ns: 'global' })}</Button>}
+                    : <Button style={{ marginTop: '3.5em' }} type="primary" disabled={!auth.isLoggedIn} onClick={claim}>{t('global.RewardsClaimButton_Claim', { ns: 'global' })}</Button>
+                }
+                <OperationStatusModal
+                    className="ClaimStatusModal"
+                    visible={modalOpen}
+                    onCancel={() => setModalOpen(false)}
+                    operationStatus={operationStatus}
+                    txHash={txHash}
+                />
             </div>
         </div>
     )

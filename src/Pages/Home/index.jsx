@@ -14,6 +14,7 @@ import {useTranslation} from "react-i18next";
 import './style.scss';
 import web3 from "web3";
 import {InfoCircleOutlined} from "@ant-design/icons";
+import {getDatasMetrics} from "../../Helpers/helper";
 
 function Home(props) {
 
@@ -22,6 +23,8 @@ function Home(props) {
     const auth = useContext(AuthenticateContext);
     const { docBalance = '0', bproBalance = '0', bprox2Balance = '0' } = auth.userBalanceData ? auth.userBalanceData : {};
     const data_row_coins2= [];
+
+    const b=getDatasMetrics(auth)
 
 
 
@@ -66,10 +69,12 @@ function Home(props) {
             <h1 className="PageTitle">{t('MoC.home.title', { ns: 'moc' })}</h1>
             <h3 className="PageSubTitle">{t("MoC.home.subtitle", { ns: 'moc' })}</h3>
             <Row gutter={16}>
-                <Col flex="300px" className={'WalletBalance-mb'}>
+                {/*<Col flex="300px" className={'WalletBalance-mb'}>*/}
+                <div  className={'sec-1'}>
                     <WalletBalance/>
-                </Col>
-                <Col flex="auto">
+                </div>
+                {/*<Col flex="auto">*/}
+                <div  className={'sec-2'}>
                     <div className={'container-b'} style={{height: '100%'}}>
                         <TokenSummaryCard
                             tokenName="stable"
@@ -96,13 +101,14 @@ function Home(props) {
                             currencyCode={'RISKPROX'}
                         />
                     </div>
-                </Col>
-                <Col xs={24} sm={24} md={24} xl={5}>
+                </div>
+                <div className={'sec-3'}>
+                {/*<Col flex="248px">*/}
                     <div className="ContainerMocAmountDatas">
                         <MocAmount />
                         <MocLiquidity />
                     </div>
-                </Col>
+                </div>
             </Row>
             <div className="Card WalletOperations">
                 <ListOperations token={'all'}></ListOperations>
