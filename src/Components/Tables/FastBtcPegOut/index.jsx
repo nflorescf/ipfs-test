@@ -37,6 +37,7 @@ export default function FastBtcPegOut(props) {
 
     const [t, i18n] = useTranslation(["global", 'moc']);
     const auth = useContext(AuthenticateContext);
+    const { accountData = {} } = auth;
     const [dataJson, setDataJson]=  useState([]);
     const [callTable, setCallTable]=  useState(false);
     const [totalTable, setTotalTable]=  useState(0);
@@ -45,7 +46,7 @@ export default function FastBtcPegOut(props) {
 
 
     const getFastbtcPegout= (skip,call_table) => {
-        api('get', `${config.api_moctest}`+'webapp/fastbtc/pegout', {address: config.address })
+        api('get', `${config.api_moctest}`+'webapp/fastbtc/pegout', {address: accountData.Owner })
             .then(response => {
                 setDataJson(response);
                 setTotalTable(response.total)
@@ -95,7 +96,6 @@ export default function FastBtcPegOut(props) {
     useEffect(() => {
         if (currentHash) {
             const interval = setInterval(() => {
-                console.log('run')
                 getFastbtcPegout(current)
                 setTimer(30000)
             }, timer);

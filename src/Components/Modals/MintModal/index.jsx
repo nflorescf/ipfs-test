@@ -1,33 +1,33 @@
 /* eslint-disable default-case */
 /* eslint-disable react/jsx-no-target-blank */
-import { Button, Tooltip } from 'antd';
+import { Button, Collapse, Slider } from 'antd';
+import { SettingFilled } from '@ant-design/icons';
 import { AuthenticateContext } from '../../../Context/Auth';
 import './style.scss';
-import Web3 from 'web3';
 import { useState, useContext, useEffect } from 'react';
 import { Modal, notification } from 'antd';
+
+import { convertAmount } from '../../../Lib/exchangeManagerHelper';
+import { getExchangeMethod } from '../../../Lib/exchangeHelper';
+import {
+  formatValueToContract,
+  formatValueWithContractPrecision,
+} from '../../../Lib/Formats';
 import Copy from "../../Page/Copy";
 import { currencies as currenciesDetail } from '../../../Config/currentcy';
 import { LargeNumber } from '../../LargeNumber';
 import {formatLocalMap2} from '../../../Lib/Formats';
 import { useTranslation } from "react-i18next";
-import { convertAmount } from '../../../Lib/exchangeManagerHelper';
-const BigNumber = require('bignumber.js');
+import BigNumber from 'bignumber.js';
 export default function MintModal(props) {
-  /* Disabled confirm button when not connected */
-  const { address } = true; //window;
-  var btnDisable = false;
   const isLoggedIn = true; //userAccountIsLoggedIn() && Session.get('rLoginConnected');
-  if (!address || !isLoggedIn) {
-    btnDisable = true;
-  }
   const {
+    exchanging,
+    receiving,
     title = '',
     handleClose = () => {},
     handleComplete = () => {},
     color,
-    currencyYouExchange,
-    currencyYouReceive,
     token,
     fee,
     interests,
@@ -35,80 +35,156 @@ export default function MintModal(props) {
     onCancel,
     onConfirm,
     convertToken,
-    exchanging,
-    receiving,
+    actionIsMint,
+    tolerance,
+    setTolerance,
+    defaultSliderValue,
+    commissionCurrency,
+    valueYouExchange,
   } = props;
+
+  /* Disabled confirm button when not connected */
+  const { address } = true; //window;
+  var btnDisable = false;
+  if (!address || !isLoggedIn) {
+    btnDisable = true;
+  }
   const [loading, setLoading] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [transaction, setTransaction] = useState(false);
   const auth = useContext(AuthenticateContext);
-  const tokenNameExchange = currencyYouExchange
-    ? currenciesDetail.find((x) => x.value === currencyYouExchange).label
+  const tokenNameExchange = exchanging.currencyCode
+    ? currenciesDetail.find((x) => x.value === exchanging.currencyCode).label
     : '';
-  const tokenNameReceive = currencyYouReceive
-    ? currenciesDetail.find((x) => x.value === currencyYouReceive).label
+  const tokenNameReceive = receiving.currencyCode
+    ? currenciesDetail.find((x) => x.value === receiving.currencyCode).label
     : '';
-  const tokenName = currencyYouReceive
-    ? currenciesDetail.find((x) => x.value === token).label
-    : '';
-  console.log('tokenNameExchange', tokenNameExchange);
+  
   const [currentHash, setCurrentHash] = useState(null);
   const [comment, setComment] = useState('');
+  const [showError, setShowError] = useState(false);
   const [t, i18n]= useTranslation(["global",'moc'])
   const { appMode } = 'Moc';
 
+  let userComment = '';
+  let userTolerance = '';
+
   useEffect(() => {
       if (currentHash) {
+        console.log('currentHash', currentHash);
           const interval = setInterval(() => {
               getTransaction(currentHash)
           }, 15000);
           return () => clearInterval(interval);
       }
-  });
+  }, [currentHash]);
   useEffect(
     () => {
       setComment('');
     },
     [visible]
   );
-  const handleOk = async () => {
-    setLoading(true);
-    switch (currencyYouReceive) {
-      case 'STABLE':
-        await auth.DoCMint(props.valueYouExchange, callback);
-        break;
-      case 'RISKPRO':
-        await auth.BPROMint(props.valueYouExchange, callback);
-        break;
-      case 'RISKPROX':
-        await auth.Bprox2Mint(props.valueYouExchange, callback);
-        break;
-      case 'RESERVE':
-        await redeem();
-        break;
-    }
+
+  const receivingInUSD = convertAmount(
+    receiving.currencyCode,
+    'USD',
+    receiving.value,
+    convertToken
+  );
+  /* View */
+  const renderAmount = (name, amountAndCurrencyCode, classElement) => {
+    return (
+      <div className={`AlignedAndCentered Amount ${classElement}`}>
+        <span className="Name">{name}</span>
+        <span className={`Value ${amountAndCurrencyCode.currencyCode} ${appMode}`}>
+          <LargeNumber
+            currencyCode={amountAndCurrencyCode.currencyCode}
+            amount={amountAndCurrencyCode.value}
+            includeCurrency
+          />
+        </span>
+      </div>
+    );
   };
-  const redeem = async () => {
-      switch (currencyYouExchange) {
-          case 'STABLE':
-              await auth.DoCReedem(props.valueYouExchange, callback);
-              break;
-          case 'RISKPRO':
-              await auth.BPROReedem(props.valueYouExchange, callback);
-              break;
-          case 'RISKPROX':
-                  await auth.Bprox2Redeem(props.valueYouExchange, callback);
-                  break;
+
+  const confirmButton = async ({comment, tolerance}) => {
+
+    // Check if there are enough spendable balance to pay
+    // take in care amount to pay gas fee
+    const minimumUserBalanceToOperate = "120000000000000";
+    const userSpendable = await window.nodeManager.getSpendableBalance(window.address);
+
+    let minimumBalance = new BigNumber(minimumUserBalanceToOperate);
+    let uTolerance = 0;
+    if (actionIsMint) {
+        minimumBalance = minimumBalance.plus(new BigNumber(exchanging.value));
+        uTolerance = tolerance;
+    }
+
+    // You have not enough balance abort
+    if (minimumBalance.gt(new BigNumber(userSpendable))) {
+        setShowError(true);
+        return;
+    }
+    // onConfirm({ comment, tolerance: uTolerance });
+    userComment = comment;
+    userTolerance = uTolerance;
+
+    /* const { appMode } = window;
+    // In rrc20 mode show allowance when need it
+    if (appMode === 'RRC20') {
+      const userAllowance = await window.nodeManager.getReserveAllowance(window.address);
+      if (valueYouExchange > userAllowance) {
+        allowanceReserveModalShow(true);
+        return;
       }
+    } */
+    onConfirmTransactionFinish();
+
+  };
+
+  const onConfirmTransactionFinish = async () => {
+    console.log(exchanging.currencyCode, receiving.currencyCode, commissionCurrency );
+    const exchangeMethod = getExchangeMethod(
+      exchanging.currencyCode,
+      receiving.currencyCode,
+      `${commissionCurrency}_COMMISSION`
+    );
+    const userAmount = formatValueWithContractPrecision(valueYouExchange, 'RESERVE');
+    const userToleranceAmount = formatValueToContract(
+      new BigNumber(userTolerance)
+          .multipliedBy(userAmount)
+          .div(100)
+          .toFixed(),
+      'RESERVE'
+    );
+
+    exchangeMethod(userAmount, userToleranceAmount, callback).then((res) => console.log(res, callback))
+  };
+
+  const callback = (error, transactionHash) => {
+    setLoading(false);
+    setCurrentHash(transactionHash);
+    setShowTransaction(true);
+    getTransaction(transactionHash);
+  };
+
+  const renderError = () => {
+    return (
+    <div className="noEnoughBalance">
+      {t('global.ConfirmTransactionModal_Error_not_enough')}
+    </div>
+    )
   };
 
   const getTransaction = async (hash) => {
     await auth.getTransactionReceipt(hash, ()=> {
       setTransaction(false);
     }).then(res => {
-      if (res)
-      setShowTransaction(true);
-      setTransaction(true);
+      if (res) {
+        setShowTransaction(true);
+        setTransaction(true);
+      }
     }).catch(e => {
       setTransaction(false);
       notification['error']({
@@ -119,14 +195,34 @@ export default function MintModal(props) {
     });
   } ;
 
-  const callback = (error, transactionHash) => {
-    setLoading(false);
-    setCurrentHash(transactionHash);
-    getTransaction(transactionHash);
+  const changeTolerance = (newTolerance) => {
+    setTolerance(newTolerance);
+    setShowError(false);
   };
 
-  const styleExchange = tokenNameExchange === tokenName ? { color } : {};
-  const styleReceive = tokenNameReceive === tokenName ? { color } : {};
+  const cancelButton = () => {
+    setShowError(false);
+    onCancel();
+  };
+  
+
+  const markStyle = {
+    style: {
+      color: '#707070',
+      fontSize: 10
+    }
+  };
+
+  const priceVariationToleranceMarks = {
+    0: { ...markStyle, label: '0.0%' },
+    1: { ...markStyle, label: '1%' },
+    2: { ...markStyle, label: '2%' },
+    5: { ...markStyle, label: '5%' },
+    10: { ...markStyle, label: '10%' }
+  };
+
+  const styleExchange = tokenNameExchange === exchanging.currencyCode ? { color } : {};
+  const styleReceive = tokenNameReceive === receiving.currencyCode ? { color } : {};
 
   return (
     <Modal
@@ -134,46 +230,36 @@ export default function MintModal(props) {
       confirmLoading={loading}
       className="ConfirmModalTransaction"
       footer={null}
-      onCancel={onCancel}
+      onCancel={cancelButton}
     >
       <div className="TabularContent">
         <h1>{t('global.ConfirmTransactionModal_Title')}</h1>
-        <div className="AlignedAndCentered Amount">
-          <span className="Name">{t('global.ConfirmTransactionModal_Exchanging')}</span>
-          <span className="Value" style={styleExchange}>
-            <Tooltip title={Number(props.valueYouExchange)?.toLocaleString(formatLocalMap2[i18n.languages[0]], {
-                minimumFractionDigits: 10,
-                maximumFractionDigits: 10
-            })}>
-              <div>
-                {Number(props.valueYouExchange).toLocaleString(formatLocalMap2[i18n.languages[0]], {
-                  minimumFractionDigits: tokenNameExchange === 'DOC' ? 2 : 6,
-                  maximumFractionDigits: tokenNameExchange === 'DOC' ? 2 : 6
-                })} {t(`MoC.Tokens_${tokenNameExchange === 'DOC' ? 'STABLE' : tokenNameExchange === 'RBTC' ? 'RESERVE' : tokenNameExchange}_code`, {ns: 'moc' })}
-              </div>
-          </Tooltip>
-          </span>
-        </div>
-        <div className="AlignedAndCentered Amount">
-          <span className="Name">{t('global.ConfirmTransactionModal_Receiving')}</span>
-          <span className="Value" style={styleReceive}>
-            <Tooltip title={Number(props.valueYouReceive)?.toLocaleString(formatLocalMap2[i18n.languages[0]], {
-                minimumFractionDigits: 10,
-                maximumFractionDigits: 10
-            })}>
-              <div>
-                {Number(props.valueYouReceive).toLocaleString(formatLocalMap2[i18n.languages[0]], {
-                  minimumFractionDigits: tokenNameReceive === 'DOC' ? 2 : 6,
-                  maximumFractionDigits: tokenNameReceive === 'DOC' ? 2 : 6
-                })} {t(`MoC.Tokens_${tokenNameReceive === 'DOC' ? 'STABLE' : tokenNameReceive === 'RBTC' ? 'RESERVE' : tokenNameReceive}_code`, {ns: 'moc' })}
-              </div>
-          </Tooltip>
-          </span>
-        </div>
+        {renderAmount(t('global.ConfirmTransactionModal_Exchanging'), exchanging, 'AmountExchanging')}
+        {showError && renderError()}
+        {renderAmount(t('global.ConfirmTransactionModal_Receiving'), receiving, 'AmountReceiving')}
         <div className="USDConversion">
-          <LargeNumber currencyCode={'USD'} amount={props.valueYouReceiveUSD} includeCurrency />
+          <LargeNumber currencyCode={'USD'} amount={receivingInUSD} includeCurrency />
         </div>
-
+        <Collapse className="CollapseTolerance">
+          <Collapse.Panel showArrow={false} header={<div className="PriceVariationSetting">
+            <SettingFilled className="icon"/>
+            <span className="SliderText">{t("global.CustomizePrize_VariationToleranceSettingsTitle")}</span>
+          </div>}>
+            <div className="PriceVariationContainer">
+              <h4>{t("global.CustomizePrize_VariationToleranceTitle")}</h4>
+              <Slider
+                className="SliderControl"
+                marks={priceVariationToleranceMarks}
+                defaultValue={defaultSliderValue}
+                min={0}
+                max={10}
+                step={0.1}
+                dots={false}
+                onChange={val => changeTolerance(val)}
+              />
+            </div>
+          </Collapse.Panel>
+        </Collapse>
         <div
           className="AlignedAndCentered"
           style={{ alignItems: 'start', marginBottom: 20 }}
@@ -245,19 +331,19 @@ export default function MintModal(props) {
               >View on the explorer</a>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center'}}>
-              <Button type="primary" onClick={() => {handleComplete(); setCurrentHash(null); setShowTransaction(false)}}>Close</Button>
+              <Button type="primary" onClick={() => {cancelButton(); setCurrentHash(null); setShowTransaction(false)}}>Close</Button>
             </div>
           </div>
           : <>
             <Button
-              onClick={() => handleClose()}
+              onClick={() => cancelButton()}
             >
               Cancel
             </Button>
             <Button
               type="primary"
               disabled={!auth.isLoggedIn}
-              onClick={() => handleOk()}
+              onClick={() => confirmButton({ comment, tolerance })}
             >Confirm</Button>
         </>}
       </div>
