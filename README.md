@@ -1,2 +1,2 @@
 # IPFSReact-POC
-deploy
+deploya
