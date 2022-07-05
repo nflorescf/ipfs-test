@@ -20,6 +20,11 @@ export function getDatasMetrics(auth){
     const coin_usd= config.coin_usd
     if (auth.userBalanceData) {
         if (auth.userBalanceData) {
+            console.log('000000000000000000000000000000000')
+            console.log(auth)
+            // console.log(auth.userBalanceData)
+            // console.log(auth.userBalanceData['bproBalance'])
+            console.log('000000000000000000000000000000000')
             const globalCoverage= Number(web3.utils.fromWei(setNumber(auth.contractStatusData['globalCoverage']), 'ether')).toFixed(4)
             const globalCoverageClean= Number(auth.contractStatusData['globalCoverage']).toFixed(4)
 
@@ -98,7 +103,7 @@ export function getDatasMetrics(auth){
 
 
 export function readJsonTable(data_j,t, i18n){
-    var set_event= "";
+    var set_event= "TRANSFER";
     if(data_j.event.includes("Mint")){set_event='MINT'}
     if(data_j.event.includes("Settlement")){set_event='SETTLEMENT'}
     if(data_j.event.includes("Redeem")){set_event='REDEEM'}
@@ -360,6 +365,10 @@ export const myParseDate = date_string => {
     return new Date(y,parseInt(M)-1,d,h,parseInt(m),s.replace('Z',''));
 }
 
+export const dateFU= (date_u)=>{
+    return (new Date(date_u * 1000).toISOString().slice(0, 19).replace('T', ' '));
+}
+
 
 export function readJsonTableFastBtcPegOut(data_j){
 
@@ -393,4 +402,79 @@ export function setToLocaleString(value,fixed,i18n){
         minimumFractionDigits: fixed,
         maximumFractionDigits: fixed
     });
+}
+
+
+
+export function readJsonClaims(data_j,t, i18n){
+
+    const set_asset= 'CLAIM';
+    const mocs= (data_j.mocs!==undefined)? setToLocaleString(parseFloat(Web3.utils.fromWei(setNumber(data_j.mocs)), 'Kwei'),2,i18n)  : '--'
+    // const mocs= DetailedLargeNumber({
+    //     amount: data_j.mocs,
+    //     currencyCode: 'MOC',
+    //     includeCurrency: true,
+    //     isPositive: true,
+    //     showSign: true,
+    //     amountUSD: data_j.USDAmount ? data_j.USDAmount : 0,
+    //     showUSD: true,
+    //     t: t,
+    //     i18n:i18n
+    // })
+    const creation= (data_j.creation!==undefined)? data_j.creation: '--'
+    const state= StatusReward({ state: data_j.state, result: data_j.result })
+    const sent_hash= (data_j.sent_hash!==null)? data_j.sent_hash: '--'
+    const truncate_sent_hash= (data_j.sent_hash)? data_j.sent_hash.substring(0, 6) + '...' + data_j.sent_hash.substring(data_j.sent_hash.length - 4, data_j.sent_hash.length) : '--'
+    const truncate_hash= (data_j.hash)? data_j.hash.substring(0, 6) + '...' + data_j.hash.substring(data_j.hash.length - 4, data_j.hash.length) : '--'
+    const hash= (data_j.hash!==undefined)? data_j.hash: '--'
+    const gas_cost= DetailedLargeNumber({
+        amount: data_j.value,
+        currencyCode: 'RESERVE',
+        includeCurrency: true,
+        amountUSD: data_j.gasFeeUSD ? data_j.gasFeeUSD : 0,
+        showUSD: true,
+        t: t,
+        i18n:i18n
+    })
+
+    return {set_asset:set_asset,
+
+        mocs:mocs,creation:creation,state:state,sent_hash:sent_hash,truncate_sent_hash:truncate_sent_hash,
+        truncate_hash:truncate_hash,hash:hash,gas_cost:gas_cost
+    }
+
+}
+
+const StatusReward = ({ state, result }) => {
+    let textToRender = '';
+    let colorToRender;
+    if (result === 'ok' && state === 'complete') {
+        textToRender = 'Sent';
+        colorToRender = 'color-confirmed'
+    } else if (!result && state === 'new') {
+        textToRender = 'Confirming';
+        colorToRender = 'color-confirming'
+    } else if (!result && (state === 'confirmed' || state === 'sent')) {
+        textToRender = 'Processing';
+        colorToRender = 'color-pending'
+    } else if (result !== 'ok' && result !== '') {
+        textToRender = 'Failed';
+        colorToRender = 'color-failed'
+    }
+
+    return (
+        <div>
+            <div className="tx-status">
+                <span className={`${colorToRender}`}>{textToRender}</span>
+            </div>
+        </div>
+    );
+};
+
+export function getRewardedToday(daily_moc, user_balance_bproBalance, total_bpro){
+    const set_daily_moc= new BigNumber(web3.utils.fromWei(daily_moc.toString()))
+    const set_user_balance_bproBalance= new BigNumber(web3.utils.fromWei(user_balance_bproBalance.toString()))
+    const set_total_bpro= new BigNumber(web3.utils.fromWei(total_bpro.toString()))
+
+    return new BigNumber((set_daily_moc).multipliedBy(set_user_balance_bproBalance)).div(set_total_bpro).multipliedBy(0.6)
 }

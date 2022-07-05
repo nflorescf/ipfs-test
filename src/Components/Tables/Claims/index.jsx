@@ -1,13 +1,17 @@
 import React, {useContext, useEffect} from 'react';
 import 'antd/dist/antd.css';
 import './style.scss';
-import {Table, Progress, Result, Tooltip, Skeleton} from 'antd';
-import RowDetail from "../RowDetail";
+import { Table, Tooltip } from 'antd';
+import RowDetail from "../RowDetailClaim";
 import classnames from 'classnames';
 import api from '../../../services/api';
 import Moment from 'react-moment';
 import { useState } from 'react'
-import {readJsonTable, setNumber, myParseDate, getDatasMetrics} from '../../../Helpers/helper'
+import {
+    myParseDate,
+    readJsonClaims,
+    dateFU
+} from '../../../Helpers/helper'
 import config from '../../../Config/constants';
 import Copy from "../../Page/Copy";
 import { useTranslation } from "react-i18next";
@@ -17,8 +21,8 @@ import {InfoCircleOutlined} from "@ant-design/icons";
 import {DownCircleOutlined, UpCircleOutlined} from "@ant-design/icons";
 
 
-export default function ListOperations(props) {
-    const { token } = props;
+export default function Claims(props) {
+
     const [current, setCurrent] = useState(1);
     const [bordered, setBordered] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -45,16 +49,9 @@ export default function ListOperations(props) {
     const [currentHash, setCurrentHash] = useState(true);
     const [timer, setTimer] = useState(100);
 
-    const [loadingSke, setLoadingSke] = useState(true);
-    const timeSke= 1500
-
-    useEffect(() => {
-        setTimeout(() => setLoading(false), timeSke)
-    },[auth]);
-
     const transactionsList= (skip,call_table) => {
-        const datas= (token!='all')?{address: accountData.Owner,limit:20,skip:(((skip-1)+(skip-1))*10),token:token} : {address: accountData.Owner,limit:20,skip:(((skip-1)+(skip-1))*10)}
-        api('get', `${config.api_moctest}`+'webapp/transactions/list/', datas)
+        const datas= {address: accountData.Owner,limit:20,skip:(((skip-1)+(skip-1))*10)}
+        api('get', config.api_moneyonchain+'claims/'+accountData.Owner, datas)
             .then(response => {
                 setDataJson(response);
                 setTotalTable(response.total)
@@ -87,12 +84,8 @@ export default function ListOperations(props) {
             dataIndex: 'asset',
         },
         {
-            title: t('MoC.operations.columns.amount', { ns: 'moc' }),
-            dataIndex: 'platform',
-        },
-        {
-            title: t('MoC.operations.columns.totalBtc', { ns: 'moc' }),
-            dataIndex: 'wallet',
+            title: t('MoC.operations.columns.mocAmount', { ns: 'moc' }),
+            dataIndex: 'amount',
         },
         {
             title: t('MoC.operations.columns.date', { ns: 'moc' }),
@@ -129,116 +122,75 @@ export default function ListOperations(props) {
     var json_end = []
     const data_row = (set_current) => {
         /*******************************sort descending by date lastUpdatedAt***********************************/
-        if(dataJson.transactions!==undefined){
-            dataJson.transactions.sort((a, b) => {
-                return myParseDate(b.lastUpdatedAt) - myParseDate(a.lastUpdatedAt)
+        if(dataJson!==undefined){
+            dataJson.sort((a, b) => {
+                return myParseDate(dateFU(b.creation)) - myParseDate(dateFU(a.creation))
             });
         }
         /*******************************end sort descending by date lastUpdatedAt***********************************/
-
-        /*******************************filter by type (token)***********************************/
-        var pre_datas = [];
-        if(dataJson.transactions!==undefined){
-            pre_datas= dataJson.transactions.filter(data_j => {
-                return (token !== 'all') ? data_j.tokenInvolved === token : true;
-            });
+        if(dataJson!==undefined){
+            json_end= dataJson
         }
-        /*******************************end filter by type (token)***********************************/
-
-        /*******************************set json group according to limits***********************************/
-        json_end = pre_datas
-        /*******************************end set json group according to limits***********************************/
-
         /*******************************extraer datos del json con el json seteado por limit y skip***********************************/
         data = [];
 
         json_end.forEach((data_j) => {
-            const datas_response = readJsonTable(data_j,t,i18n)
+            const datas_response = readJsonClaims(data_j,t,i18n)
+
+            const date_formated= <span><Moment format={(i18n.language === "en") ? date.DATE_EN : date.DATE_ES} unix>{datas_response['creation']}</Moment></span>
+            const amount_set= (datas_response['mocs']!=='--')? '+'+ datas_response['mocs'] + ' MOC': datas_response['mocs']
 
             const detail = {
-                event: datas_response['set_event']
-                , created: <span><Moment format={(i18n.language === "en") ? date.DATE_EN : date.DATE_ES}>{datas_response['lastUpdatedAt']}</Moment></span>
-                , details: datas_response['RBTCAmount']
+                event: 'CLAIM'
+                , created: date_formated
+                , gas_fee: '--'
                 , asset: datas_response['set_asset']
-                , confirmation: (true) ? <span><Moment format={(i18n.language === "en") ? date.DATE_EN : date.DATE_ES}>{datas_response['confirmationTime']}</Moment></span> : <span><Moment format="YYYY-MM-DD HH:MM:SS">{datas_response['confirmationTime']}</Moment></span>
-                , address: (datas_response['address']!='--')? <Copy textToShow={datas_response['truncate_address']} textToCopy={datas_response['address']} /> : '--'
-                , platform: datas_response['amount']
-                , platform_fee: datas_response['platform_fee_value']
-                , block: datas_response['blockNumber']
-                , wallet: datas_response['wallet_value']
-                , interests: datas_response['interests']
-                , tx_hash_truncate: datas_response['tx_hash_truncate']
-                , tx_hash: datas_response['tx_hash']
-                , leverage: datas_response['leverage']
-                , gas_fee: datas_response['gas_fee']
-                , price: datas_response['price']
-                , comments: '--'
+                , confirmation: '--'
+                , address: '--'
+                , amount: amount_set
+                , gas_cost: datas_response['gas_cost']
+                , sent_hash: (datas_response['sent_hash']!='--')? <Copy textToShow={datas_response['truncate_sent_hash']} textToCopy={datas_response['sent_hash']} /> : '--'
+                , hash: (datas_response['hash']!='--')? datas_response['hash'] : '--'
+                , truncate_hash: (datas_response['truncate_hash']!='--')? datas_response['truncate_hash'] : '--'
+                , status: datas_response['state']
+                , block: '--'
+                , detail: '--'
+                , transaction: '--'
+                , moc_price: '--'
             };
 
             data_row_coins2.push({
-                key: data_j._id,
+                key: data_j.hash,
                 info: '',
-                event: datas_response['set_event'],
+                event: 'CLAIM',
                 asset: datas_response['set_asset'],
-                // platform: `+ ${datas_response['paltform_detail']}`,
-                // platform: formatVisibleValue(
-                //     datas_response['paltform_detail'],
-                //     'STABLE',
-                //     'es'
-                // ),
-                platform: datas_response['paltform_detail'],
-                // platform: (data_j.amount!==undefined)? <LargeNumber amount={datas_response['paltform_detail']} {...{ currencyCode }} /> : '--',
-                // wallet: (data_j.RBTCAmount!==undefined)? `${wallet_detail} RBTC`:'--',
+                amount: amount_set,
                 wallet: datas_response['wallet_value_main'],
-                date: datas_response['lastUpdatedAt'],
-                status: { txt: datas_response['set_status_txt'], percent: datas_response['set_status_percent'] },
+                date: date_formated,
+                status: datas_response['state'],
                 detail: detail,
             });
 
         });
         data_row_coins2.forEach((element, index) => {
-            const asset = [];
-
-            switch (element.asset) {
-                case 'STABLE':
-                    asset.push({ 'image': 'icon-stable.svg', 'color': 'color-token-stable', 'txt': 'DOC' });
-                    data_row_coins2[index].detail.asset = 'DOC';
-                    break;
-                case 'RISKPRO':
-                    asset.push({ 'image': 'icon-riskpro.svg', 'color': 'color-token-riskpro', 'txt': 'BPRO' });
-                    data_row_coins2[index].detail.asset = 'BPRO'
-                    break;
-                case 'RISKPROX':
-                    asset.push({ 'image': 'icon-riskprox.svg', 'color': 'color-token-riskprox', 'txt': 'BTCX' });
-                    data_row_coins2[index].detail.asset = 'BTCX'
-                    break;
-                default:
-                    asset.push({ 'image': 'icon-stable.svg', 'color': 'color-token-stable', 'txt': 'DOC' });
-                    data_row_coins2[index].detail.asset = 'DOC'
-                    break;
-            }
+            const asset = [{ 'image': 'icon-moc.svg', 'color': '', 'txt': 'CLAIM' }]
+            data_row_coins2[index].detail.asset = 'MOC'
 
             data.push({
                 key: element.key,
                 info: '',
                 event: <span className={classnames('event-action', asset[0].color)}>{element.event}</span>,
                 asset: <img className="uk-preserve-width uk-border-circle" src={window.location.origin + `/Moc/` + asset[0].image} alt="avatar" width={32} />,
-                // platform: <span className="display-inline CurrencyTx">{element.platform} {asset[0].txt}</span>,
-                platform: <span className="display-inline CurrencyTx">{element.platform}</span>,
-                wallet: <span className="display-inline ">{element.wallet} </span>,
+                amount: <span className="display-inline CurrencyTx">{element.amount}</span>,
                 date: <span>{element.date}</span>,
-                status: <div style={{ width: '100%' }}><Progress percent={element.status.percent} /><br /><span
-                    className="color-confirmed conf_title">{element.status.txt}</span></div>,
+                status: <span>{element.status}</span>,
                 description: <RowDetail detail={element.detail} />,
             });
-
         })
         /*******************************end extraer datos del json con el json seteado por limit y skip***********************************/
     }
 
     data_row(current)
-
-    //const { xScroll, yScroll, ...state } = this.state;
 
     const scroll = {};
     if (yScroll) {
@@ -272,10 +224,6 @@ export default function ListOperations(props) {
         xScroll,
     }
 
-    useEffect(() => {
-        setTimeout(() => setLoadingSke(false), timeSke)
-    },[auth]);
-
     return (
         <>
             <div className="title">
@@ -284,7 +232,6 @@ export default function ListOperations(props) {
                     <InfoCircleOutlined className="Icon" />
                 </Tooltip>
             </div>
-            {!loadingSke ? <>
             <Table
                 {...state}
                 expandable={{
@@ -302,9 +249,7 @@ export default function ListOperations(props) {
                 columns={tableColumns}
                 dataSource={hasData ? (auth.isLoggedIn == true) ? data : null : null}
                 scroll={scroll}
-            /></>:
-                <Skeleton active={true}  paragraph={{ rows: 4 }}></Skeleton>
-            }
+            />
         </>
     );
 }
