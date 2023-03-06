@@ -4,6 +4,12 @@
   justify-content: space-between;
   flex-direction: column;
   flex: 1;
+  position: relative;
+
+  h1{
+    width: 80%
+  }
+
   h2 {
     font-size: 1em;
   }
@@ -34,9 +40,21 @@
     color: #fff;
     margin: 25px auto auto;
   }
+  .Tooltip{
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    color: #707070;
+    cursor: pointer;
+  }
 }
 .Card.withPadding {
   padding: 1.6em;
+  height: 135px;
+  //width: 248px;
+  //@media (max-width: 600px) {
+  //  width: 248px;
+  //}
 }
 
 
@@ -65,4 +83,9 @@
   .Metric {
     margin-top: 10px;
   }
+}
+
+
+.test{
+  flex: auto;
 }

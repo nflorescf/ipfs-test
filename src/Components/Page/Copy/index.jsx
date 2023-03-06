@@ -2,7 +2,7 @@ import { notification } from 'antd';
 
 export default function Copy(props) {
 
-    const {textToShow = '', textToCopy = ''} = props;
+    const {textToShow = '', textToCopy = '', fastBTC = false} = props;
 
     const onClick = () => {
         navigator.clipboard.writeText(textToCopy);
@@ -14,14 +14,15 @@ export default function Copy(props) {
     };
 
     return (
-        <h4 onClick={onClick}>
+        <span onClick={onClick} style={{ display: fastBTC && 'flex','fontSize':'12px'}}>
             <img
                 width={17}
-                src={window.location.origin + '/Moc/copy.svg'}
+                height={17}
+                src={window.location.origin + '/Moc/copy2.png'}
                 alt=""
                 style={{marginRight: 10}}
             />
             {textToShow}
-        </h4>
+        </span>
     );
 }

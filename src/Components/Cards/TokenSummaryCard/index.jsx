@@ -1,11 +1,16 @@
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { Row, Col } from 'antd';
-import React from 'react';
+import {Row, Col, Tooltip, Skeleton} from 'antd';
+import React, {useEffect, useState} from 'react';
 import { useContext } from 'react';
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { AuthenticateContext } from '../../../Context/Auth';
 import { currencies as currenciesDetail } from '../../../Config/currentcy';
+import { LargeNumber } from "../../LargeNumber";
+import { useTranslation } from "react-i18next";
+import InformationModal from '../../Modals/InformationModal';
+import {setToLocaleString} from "../../../Helpers/helper";
+
 const BigNumber = require('bignumber.js');
 
 const styleCentered = {
@@ -22,45 +27,66 @@ export default function TokenSummaryCard(props) {
         page = '',
         balance = '0',
         labelCoin = '',
+        currencyCode = ''
     } = props;
 
     const auth = useContext(AuthenticateContext);
+    const [t, i18n] = useTranslation(["global", 'moc'])
 
-    const getBalance = () => {
+    const getBalance = (tooltip) => {
         if (auth.userBalanceData) {
             switch (tokenName) {
                 case 'stable':
-                    return (auth.userBalanceData['docBalance']/auth.contractStatusData.bitcoinPrice).toFixed(6);
+                    return setToLocaleString((auth.userBalanceData['docBalance'] / auth.contractStatusData.bitcoinPrice).toFixed(!tooltip ? 6 : 20),!tooltip ? 6 : 20,i18n)
                 case 'riskpro':
-                    return ((auth.contractStatusData['bproPriceInUsd']*auth.userBalanceData['bproBalance'])/auth.contractStatusData.bitcoinPrice).toFixed(6)
-                    // return auth.userBalanceData['bproBalance'];
+                    return setToLocaleString(((auth.web3.utils.fromWei(auth.contractStatusData['bproPriceInUsd']) * auth.web3.utils.fromWei(auth.userBalanceData['bproBalance'])) / auth.web3.utils.fromWei(auth.contractStatusData.bitcoinPrice)).toFixed(!tooltip ? 6 : 20),!tooltip ? 6 : 20,i18n)
                 case 'riskprox':
-                    return auth.userBalanceData['bprox2Balance'];
+                    return setToLocaleString(new BigNumber(auth.web3.utils.fromWei(auth.userBalanceData['bprox2Balance'])).toFixed(!tooltip ? 6 : 20),!tooltip ? 6 : 20,i18n)
             }
+        } else {
+            return (0).toFixed(6)
         }
     };
-    const getBalanceUSD = () => {
+    const getBalanceUSD = (tooltip) => {
         if (auth.userBalanceData) {
             switch (tokenName) {
                 case 'stable':
-                    return auth.userBalanceData['docBalance'];
+                    // return new BigNumber(auth.userBalanceData['docBalance']).toFixed(2)
+                    return setToLocaleString(new BigNumber(auth.web3.utils.fromWei(auth.userBalanceData['docBalance'])).toFixed(!tooltip ? 2 : 20),!tooltip ? 2 : 20,i18n)
                 case 'riskpro':
-                    return new BigNumber(auth.contractStatusData['bproPriceInUsd']*auth.userBalanceData['bproBalance']).toFixed(2);
+                    // return new BigNumber(auth.contractStatusData['bproPriceInUsd'] * auth.userBalanceData['bproBalance']).toFixed(2);
+                    return setToLocaleString(new BigNumber(auth.web3.utils.fromWei(auth.contractStatusData['bproPriceInUsd']) * auth.web3.utils.fromWei(auth.userBalanceData['bproBalance'])).toFixed(!tooltip ? 2 : 20),!tooltip ? 2 : 20,i18n)
                 case 'riskprox':
-                    return new BigNumber(auth.contractStatusData['bitcoinPrice'] * auth.userBalanceData['bprox2Balance']).toFixed(4);
+                    // return new BigNumber(auth.contractStatusData['bitcoinPrice'] * auth.userBalanceData['bprox2Balance']).toFixed(2);
+                    return setToLocaleString(new BigNumber(auth.web3.utils.fromWei(auth.contractStatusData['bitcoinPrice']) * auth.web3.utils.fromWei(auth.userBalanceData['bprox2Balance'])).toFixed(!tooltip ? 2 : 20),!tooltip ? 2 : 20,i18n)
             }
+        } else {
+            return (0).toFixed(2)
         }
     };
+
+    const { convertToken } = auth;
+    const convertTo = convertToCurrency => convertToken(tokenName, convertToCurrency, 900114098986076075281);
+
+    const [loading, setLoading] = useState(true);
+    const timeSke= 1500
+
+    useEffect(() => {
+        setTimeout(() => setLoading(false), timeSke)
+    },[auth]);
+
     return (
-        <Row className="Card TokenSummaryCard">
+        <Row className="Card TokenSummaryCard" style={{'height':'135px'}}>
+            {!loading ? <>
+            <InformationModal currencyCode={currencyCode} />
             <Col
-                span={8}
+                span={7}
                 style={{
                     ...styleCentered,
                     textAlign: 'right'
                 }}
             >
-                <Row className="ArrowHomeIndicators" style={{ width: '100%' }}>
+                <Row className="ArrowHomeIndicators arrow-center-values">
                     <Col
                         span={8}
                         style={{
@@ -69,7 +95,7 @@ export default function TokenSummaryCard(props) {
                         }}
                     >
                         <img
-                            width={45}
+                            height={45}
                             src={
                                 window.location.origin +
                                 `/Moc/icon-${tokenName}.svg`
@@ -86,7 +112,7 @@ export default function TokenSummaryCard(props) {
                         }}
                     >
                         <span className="Number" style={{ color }}>
-                            {balance}
+                            <LargeNumber className="WithdrawalAmount__" amount={balance} currencyCode={currencyCode} />
                         </span>
                     </Col>
                 </Row>
@@ -101,19 +127,23 @@ export default function TokenSummaryCard(props) {
                 }}
             >
                 <div className="Numbers Left">
-                    <div className="Number Few">
-                        {getBalance()}{' '}
-                        {
-                            currenciesDetail.find(
-                                (x) => x.value === labelCoin.toUpperCase()
-                            ).label
-                        }
-                    </div>
-                    <div className="Number Few">{getBalanceUSD()} USD</div>
+                    <Tooltip placement="top" title={getBalance(true)}>
+                        <div className="Number Few">
+                            {getBalance()}{' '}
+                            {
+                                currenciesDetail.find(
+                                    (x) => x.value === labelCoin.toUpperCase()
+                                ).label
+                            }
+                        </div>
+                    </Tooltip>
+                    <Tooltip placement="top" title={getBalanceUSD(true)}>
+                        <div className="Number Few">{getBalanceUSD()} USD</div>
+                    </Tooltip>
                 </div>
             </Col>
             <Col
-                span={2}
+                span={3}
                 style={{
                     ...styleCentered,
                     justifyContent: 'flex-end'
@@ -124,9 +154,12 @@ export default function TokenSummaryCard(props) {
                     type="primary"
                     shape="circle"
                     onClick={() => navigate(page)}
-                    icon={<ArrowRightOutlined />}
+                    icon={<ArrowRightOutlined
+                    />}
                 />
-            </Col>
+            </Col></>:
+                <Skeleton active={true}  paragraph={{ rows: 2 }}></Skeleton>
+            }
         </Row>
     );
 }

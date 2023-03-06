@@ -1,13 +1,4 @@
-**IPFS DEPLOY**
-aaa
 
-**Pinata**
-
-1 - Generate API Token
-
-**Github**
-
-1- Create repo
 2 - Create TOKEN
 
 **CloudFlare**
@@ -115,5 +106,4 @@ jobs:
             - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
             - [ipfs://${{ steps.upload.outputs.hash }}/](ipfs://${{ steps.upload.outputs.hash }}/)
             ${{ needs.bump_version.outputs.changelog }}
-```
 

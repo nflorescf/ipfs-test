@@ -1,55 +1,56 @@
-import RLogin  from '@rsksmart/rlogin';
-import WalletConnectProvider from '@walletconnect/web3-provider';
-import Portis from '@portis/web3';
-import Torus from '@toruslabs/torus-embed';
-import { trezorProviderOptions } from '@rsksmart/rlogin-trezor-provider';
-import { ledgerProviderOptions } from '@rsksmart/rlogin-ledger-provider';
-import { dcentProviderOptions } from '@rsksmart/rlogin-dcent-provider';
 
-const rpcUrls = {
-    30: 'https://public-node.rsk.co',
-    31: 'https://public-node.testnet.rsk.co'
-};
+const getRLogin = () => {
 
-const supportedChains = Object.keys(rpcUrls).map(Number);
+    const rpcUrls = {
+        30: 'https://public-node.rsk.co',
+        31: 'https://public-node.testnet.rsk.co'
+    };
 
-const rLogin = new RLogin({
-    cacheProvider: true,
-    providerOptions: {
-        walletconnect: {
-            package: WalletConnectProvider,
-            options: {
-                rpc: rpcUrls
-            }
-        },
-        portis: {
-            package: Portis,
-            options: {
-                id: 'a1c8672b-7b1c-476b-b3d0-41c27d575920',
-                network: {
-                    nodeUrl: 'https://public-node.testnet.rsk.co',
-                    chainId: 31
+    const chainId = 31;
+    var selectedNetwork = {};
+    selectedNetwork[parseInt(chainId)] = rpcUrls[parseInt(chainId)];
+
+    const supportedChains = Object.keys(rpcUrls).map(Number);
+
+    const rLogin = new window.RLogin.default({
+        cacheProvider: true,
+        providerOptions: {
+            walletconnect: {
+                package: window.WalletConnectProvider.default,
+                options: {
+                    rpc: rpcUrls
+                }
+            },
+            'custom-ledger': {
+                ...window.rLoginLedgerProvider.ledgerProviderOptions,
+                options: {
+                  rpcUrl: rpcUrls[parseInt(chainId, 10)],
+                  chainId: parseInt(chainId, 10)
+                }
+            },
+            'custom-dcent': {
+              ...window.rLoginDCentProvider.dcentProviderOptions,
+              options: {
+                rpcUrl: rpcUrls[parseInt(chainId)],
+                chainId: parseInt(chainId),
+                debug: true
+              }
+            },
+            'custom-trezor': {
+                ...window.rLoginTrezorProvider.trezorProviderOptions,
+                options: {
+                  rpcUrl: rpcUrls[parseInt(chainId, 10)],
+                  chainId: parseInt(chainId, 10),
+                  manifestEmail: 'info@moneyonchain.com',
+                  manifestAppUrl: 'https://moneyonchain.com/'
                 }
             }
         },
-        torus: {
-            package: Torus
-        },
-        'custom-ledger': ledgerProviderOptions,
-        'custom-dcent': dcentProviderOptions,
-        'custom-trezor': {
-            ...trezorProviderOptions,
-            options: {
-                manifestEmail: 'info@iovlabs.org',
-                manifestAppUrl:
-                    'https://basic-sample.rlogin.identity.rifos.org/'
-            }
-        }
-    },
-    rpcUrls,
-    supportedChains
-});
+        rpcUrls: selectedNetwork,
+            supportedChains
+    });
 
-window.rLogin = rLogin;
+    return rLogin;
+}
 
-export default rLogin;
+export default getRLogin;

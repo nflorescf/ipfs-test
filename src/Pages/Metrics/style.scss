@@ -1,3 +1,5 @@
+@import '../../assets/css/global.scss';
+
 .MetricsCardsContainer {
   .Card {
     height: 100%;
@@ -7,6 +9,7 @@
       display: flex;
       flex-direction: row;
       font-size: 21px;
+
       .green{
         color: #00a651;
       }
